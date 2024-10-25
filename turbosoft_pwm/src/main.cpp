@@ -1,9 +1,9 @@
 #include <Arduino.h>
-
+//Motor 1
 const int IN1 = 12;
 const int IN2 = 11;
 const int ENA = 10;
-
+//Motor 2
 const int IN3 = 7;
 const int IN4 = 8;
 const int ENB = 9;
