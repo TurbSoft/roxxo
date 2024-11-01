@@ -9,8 +9,8 @@ const int IN3 = 7;
 const int IN4 = 8;
 const int ENB = 9;
 
-const int pwmValueA = 50;
-const int pwmValueB = 50;
+const int pwmValueA = 0;
+const int pwmValueB = 0;
 
 
 

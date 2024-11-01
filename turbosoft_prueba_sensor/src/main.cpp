@@ -1,18 +1,28 @@
+
 #include <Arduino.h>
 
-// put function declarations here:
-int myFunction(int, int);
+const int line_pin[5] = {2, 3, 4, 5, 6};
 
 void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+  // Initialize serial communication
+  Serial.begin(9600);
+
+  // Set all line pins as input
+  for (int i = 0; i < 5; i++) {
+    pinMode(line_pin[i], INPUT);
+  }
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-}
+  // Check each line pin and print its state
+  for (int i = 0; i < 5; i++) {
+    int pinState = digitalRead(line_pin[i]);
+    Serial.print("Pin ");
+    Serial.print(line_pin[i]);
+    Serial.print(": ");
+    Serial.println(pinState == HIGH ? "HIGH" : "LOW");
+  }
 
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+  // Add a delay to avoid flooding the serial monitor
+  delay(100);
 }
