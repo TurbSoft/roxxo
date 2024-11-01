@@ -24,5 +24,5 @@ void loop() {
   }
 
   // Add a delay to avoid flooding the serial monitor
-  delay(100);
+  delay(1000);
 }
