@@ -198,7 +198,7 @@ void compute_pwm_from_sensor(int inS1, int inS2, int inS3, int inS4, int inS5){
         robotDerecha2Ruedas(pwmValueD, pwmValueD);
       }
   } 
-  else if{
+  else if(inS5 !=HIGH){
       pwmValueD = 95;
       pwmValueI = 95;
       while (inS3 == HIGH){
