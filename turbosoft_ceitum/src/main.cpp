@@ -61,26 +61,48 @@ void loop() {
   3. Logica de control: Como fijar los motores segun los sensores
   4. Enviar los valores de pwm a los motores ;) 
   */
+  bool startup = false;
+
+  if (!startup){
+      delay(5000);
+      startup = true;
+  }
 
 
-  // 1. Leer el valor de los sensores y ponerlo en variables
-  int inS1 = digitalRead(S1);
-  int inS2 = digitalRead(S2);
-  int inS3 = digitalRead(S3);
-  int inS4 = digitalRead(S4);
-  int inS5 = digitalRead(S5);
+  if (startup){
 
-  // 2. Escribir en el puerto serial (USB)
-  print_to_serial(inS1, inS2,inS3, inS4, inS5);
+    // 1. Leer el valor de los sensores y ponerlo en variables
+    int inS1 = digitalRead(S1);
+    int inS2 = digitalRead(S2);
+    int inS3 = digitalRead(S3);
+    int inS4 = digitalRead(S4);
+    int inS5 = digitalRead(S5);
 
-  // 3. Controlar el motor 
-  compute_pwm_from_sensor(inS1, inS2, inS3, inS4, inS5);
+    // 2. Escribir en el puerto serial (USB)
+    print_to_serial(inS1, inS2,inS3, inS4, inS5);
 
-  // 4. Enviar los valores de pwm a los motores 
- // send_pwm(pwmValueA, pwmValueB);
+    // 3. Controlar el motor 
+    compute_send_pwm_from_sensor(inS1, inS2, inS3, inS4, inS5);
 
-  // Mantener esto por un valor de tiempo
-  delay(100);
+    // Mantener esto por un valor de tiempo
+    delay(50);
+
+    // Condicion luego del control para corregir
+    if (inS2==HIGH || inS3==HIGH || inS4==HIGH){
+            pwmValueD = 100;
+            pwmValueI = 100;
+            robotAdelante(pwmValueD, pwmValueI);
+            delay(10);
+        }
+    }
+    else
+    {
+        pwmValueD = 0;
+        pwmValueI = 0;
+        robotAdelante(pwmValueD, pwmValueI);
+        delay(10);
+    }
+
 }
 
 void print_to_serial(int inS1, int inS2, int inS3, int inS4, int inS5){
@@ -142,7 +164,7 @@ void send_pwm(int pwmValueA, int pwmValueB){
 
 }
 
-void compute_pwm_from_sensor(int inS1, int inS2, int inS3, int inS4, int inS5){
+void compute_send_pwm_from_sensor(int inS1, int inS2, int inS3, int inS4, int inS5){
   // Definimos la logica del sensor 
   /* El robot dispone de 5 entradas (sensores distribuidos asi)
                     S3
@@ -173,43 +195,44 @@ void compute_pwm_from_sensor(int inS1, int inS2, int inS3, int inS4, int inS5){
   */
 
 
-  // Sensor de la izquierda
+  // Girar a la derecha si detecta a la izquierda
   if (inS2 != HIGH ){
-      pwmValueD = 105;
+      pwmValueD = 115;
       pwmValueI = 0;
-      robotDerecha1Rueda(pwmValueD)
+      robotDerecha1Rueda(pwmValueD);
   } 
-  // Andar hacia adelante
-  else if (inS3 != HIGH && inS2 == HIGH && inS4==HIGH){
-      pwmValueI = 105;
-      pwmValueD = 105;
+  // Andar hacia adelante si detecta el sensor central
+  else if (inS3 != HIGH){
+      pwmValueI = 120;
+      pwmValueD = 120;
       robotAdelante(pwmValueD, pwmValueI);
   }
-  // Sensor de la derecha
+  // Girar a la izquierda si detecta a la derecha
   else if (inS4 != HIGH){
       pwmValueD = 0;
-      pwmValueI = 105;
+      pwmValueI = 120;
       robotIzquierda1Rueda(pwmValueI);
   }
+  // Girar muy a la izquierda
   else if(inS1 != HIGH){
-      pwmValueD = 95;
-      pwmValueI = 95;
-      while (inS3 == HIGH){
-        robotDerecha2Ruedas(pwmValueD, pwmValueD);
-      }
+      pwmValueD = 110;
+      pwmValueI = 110;
+      robotIzquierda2Ruedas(pwmValueD, pwmValueD);
   } 
+  // Girar muy a la derecha
   else if(inS5 !=HIGH){
-      pwmValueD = 95;
-      pwmValueI = 95;
-      while (inS3 == HIGH){
-        robotIzquierda2Ruedas(pwmValueD, pwmValueD);
-      }
+      pwmValueD = 110;
+      pwmValueI = 110;
+      robotDerecha2Ruedas(pwmValueD, pwmValueD);
   }
   else
   {
-      pwmValueI = 95;
-      pwmValueD = 95;
+      // Durante un segundo manda el robot adelante
+      pwmValueI = 0;
+      pwmValueD = 0;
       robotAdelante(pwmValueD, pwmValueD);
+      // Luego para
+    //   robotAdelante(0, 0);
   }
 }
 
@@ -270,7 +293,7 @@ void robotIzquierda1Rueda(int pwm){
 
 void robotDerecha2Ruedas(int pwmD, int pwmI){
     motorDerecha_atras(pwmD);
-    motorIzquierda_adelante(pwmI)
+    motorIzquierda_adelante(pwmI);
 }
 
 void robotDerecha1Rueda(int pwm){
