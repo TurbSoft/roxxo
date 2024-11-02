@@ -111,8 +111,8 @@ void loop() {
   } 
   //                        x        
   else if (inS3 != HIGH){
-      pwmValueA = 100;
-      pwmValueB = 100;
+      pwmValueA = 105;
+      pwmValueB = 105;
   }
   //                                        x
   else if (inS4 != HIGH){
