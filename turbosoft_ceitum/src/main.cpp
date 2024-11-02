@@ -10,8 +10,8 @@ const int IN4 = 8;
 const int ENB = 9;
 
 //Entradas pwm valor inicial
-int pwmValueA = 0; //modificable (95)
-int pwmValueB = 0;
+int pwmValueD = 0; //modificable (95)
+int pwmValueI = 0;
 
 // Sensor Definicion de todos los sensores
 // const int line_pin[5] = {2, 3, 4, 5, 6};
@@ -77,7 +77,7 @@ void loop() {
   compute_pwm_from_sensor(inS1, inS2, inS3, inS4, inS5);
 
   // 4. Enviar los valores de pwm a los motores 
-  send_pwm(pwmValueA, pwmValueB);
+ // send_pwm(pwmValueA, pwmValueB);
 
   // Mantener esto por un valor de tiempo
   delay(100);
@@ -162,29 +162,118 @@ void compute_pwm_from_sensor(int inS1, int inS2, int inS3, int inS4, int inS5){
     3. Si S4 detecta entonces pwmA = 0, pwmB=105 (Girar derecha)
 
     Idea 2: 
+    Programar S1 y S5 
 
+    1. Si S3=LOW y S2=HIGH y S4=HIGH entonces robotAdelante
+    2. Si S2=LOW entonces robotDerecha1Rueda
+    3. Si S4=LOW entonces robotIzquierda1Rueda
+    4. Si S5=LOW entonces robotIzquierda2Ruedas
+    5. Si S1=LOW entonces robotDerecha2Ruedas
 
   */
 
 
-  // Sensor de la derecha
-  //
-  if (inS2 != HIGH){
-      pwmValueA = 105;
-      pwmValueB = 0;
+  // Sensor de la izquierda
+  if (inS2 != HIGH ){
+      pwmValueD = 105;
+      pwmValueI = 0;
+      robotDerecha1Rueda(pwmValueD)
   } 
-  // 
-  else if (inS3 != HIGH){
-      pwmValueA = 105;
-      pwmValueB = 105;
+  // Andar hacia adelante
+  else if (inS3 != HIGH && inS2 == HIGH && inS4==HIGH){
+      pwmValueI = 105;
+      pwmValueD = 105;
+      robotAdelante(pwmValueD, pwmValueI);
   }
-  //
+  // Sensor de la derecha
   else if (inS4 != HIGH){
-      pwmValueA = 0;
-      pwmValueB = 105;
+      pwmValueD = 0;
+      pwmValueI = 105;
+      robotIzquierda1Rueda(pwmValueI);
   }
-  else {
-      pwmValueA = 0;
-      pwmValueB = 0;
+  else if(inS1 != HIGH){
+      pwmValueD = 95;
+      pwmValueI = 95;
+      while (inS3 == HIGH){
+        robotDerecha2Ruedas(pwmValueD, pwmValueD);
+      }
+  } 
+  else if{
+      pwmValueD = 95;
+      pwmValueI = 95;
+      while (inS3 == HIGH){
+        robotIzquierda2Ruedas(pwmValueD, pwmValueD);
+      }
   }
+  else
+  {
+      pwmValueI = 95;
+      pwmValueD = 95;
+      robotAdelante(pwmValueD, pwmValueD);
+  }
+}
+
+void motorDerecha_adelante(int pwmValueA){
+
+    // Motor 1 hacia adelante
+    digitalWrite(IN1, HIGH);
+    digitalWrite(IN2, LOW);
+    
+    // Controlamos la velocidad con PWM
+    analogWrite(ENA, pwmValueA);
+}
+
+void motorDerecha_atras(int pwmValueA){
+
+    // Motor 1 hacia adelante
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, HIGH);
+    
+    // Controlamos la velocidad con PWM
+    analogWrite(ENA, pwmValueA); 
+}
+    
+void motorIzquierda_adelante(int pwmValueB){
+
+  // Motor 2 también hacia adelante
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+  
+  // Controlamos la velocidad con PWM
+  analogWrite(ENB, pwmValueB);    
+}
+
+void motorIzquierda_atras(int pwmValueB){
+
+  // Motor 2 también hacia adelante
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+  
+  // Controlamos la velocidad con PWM
+  analogWrite(ENB, pwmValueB);    
+}
+
+void robotAdelante(int pwmD, int pwmI){
+    motorDerecha_adelante(pwmD);
+    motorIzquierda_adelante(pwmI);
+}
+
+void robotIzquierda2Ruedas(int pwmD, int pwmI){
+    motorIzquierda_atras(pwmI);
+    motorDerecha_adelante(pwmD);
+}
+
+void robotIzquierda1Rueda(int pwm){
+    motorIzquierda_adelante(0);
+    motorDerecha_adelante(pwm);
+}
+
+void robotDerecha2Ruedas(int pwmD, int pwmI){
+    motorDerecha_atras(pwmD);
+    motorIzquierda_adelante(pwmI)
+}
+
+void robotDerecha1Rueda(int pwm){
+    motorDerecha_adelante(0);
+    motorIzquierda_adelante(pwm);
 }
