@@ -120,7 +120,7 @@ int compute_send_pwm_from_sensor(int inS1, int inS2, int inS3, int inS4, int inS
   int lastActiveMotor;
 
   if (inS2 != HIGH) {
-      pwmValueD = 110;
+      pwmValueD = 95;
       pwmValueI = 0;
       robotDerecha1Rueda(pwmValueD);
       lastActiveMotor = 0; // Derecha
@@ -128,13 +128,13 @@ int compute_send_pwm_from_sensor(int inS1, int inS2, int inS3, int inS4, int inS
   }
   if (inS4 != HIGH) {
       pwmValueD = 0;
-      pwmValueI = 110;
+      pwmValueI = 95;
       robotIzquierda1Rueda(pwmValueI);
       lastActiveMotor = 1; // Izquierda
       return lastActiveMotor;
   }
 
-  pwmValueD = 110;
+  pwmValueD = 95;
   pwmValueI = 0;
   robotDerecha1Rueda(pwmValueD);
   lastActiveMotor = 0;  

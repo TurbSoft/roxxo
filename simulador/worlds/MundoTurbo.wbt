@@ -3,17 +3,28 @@
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackground.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/robots/picaxe/microbot/protos/Microbot.proto"
 
 WorldInfo {
 }
 Viewpoint {
-  orientation -0.1801103052710877 0.19734603684251692 0.9636466259359328 1.5164801491561128
-  position -0.4117914416779802 -8.374113300446375 3.3591943428806905
+  orientation 0.0845507614281136 -0.05353416730542128 -0.994980030790991 4.265906413117488
+  position 0.20649758747040428 -0.32717953347841644 0.11637779404100555
 }
 TexturedBackground {
 }
 TexturedBackgroundLight {
 }
 RectangleArena {
+  translation -0.25 0 0
   floorSize 3 3
+}
+Microbot {
+  translation 0 0 0.03
+  extensionSlot [
+    DistanceSensor {
+      translation 0 0.01 0
+      rotation -0.9999999999888041 3.478659999961053e-06 3.2079699999640837e-06 -0.785395307179586
+    }
+  ]
 }
