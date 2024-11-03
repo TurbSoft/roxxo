@@ -23,8 +23,19 @@ const int S3 = 4; // Verde
 const int S4 = 5; // Amarillo 
 const int S5 = 6; // Naranja
 
-void robotDerecha1Rueda(int pwm);
+// Inicio startup
+bool startup = false;
+
+// Declaracion de funciones
+void motorDerecha_adelante(int pwmValueA);
+void motorDerecha_atras(int pwmValueA);
+void motorIzquierda_adelante(int pwmValueB);
+void motorIzquierda_atras(int pwmValueB);
+void robotAdelante(int pwmD, int pwmI);
+void robotIzquierda2Ruedas(int pwmD, int pwmI);
 void robotIzquierda1Rueda(int pwm);
+void robotDerecha2Ruedas(int pwmD, int pwmI);
+void robotDerecha1Rueda(int pwm);
 
 void setup() {
    // Configuramos los pines como salida
@@ -48,16 +59,13 @@ void setup() {
 }
 
 void loop() {
-  bool startup = false;
 
+  // Startup (Reset 5 segundos antes de comenzar)
   if (!startup) {
       delay(5000);
       startup = true;
   }
   
-  int lastValue = 0;
-  int currentValue = 0; // Declare currentValue
-
   if (startup) {
     // 1. Leer el valor de los sensores y ponerlo en variables
     int inS1 = digitalRead(S1);
@@ -66,43 +74,30 @@ void loop() {
     int inS4 = digitalRead(S4);
     int inS5 = digitalRead(S5);
 
-    // 2. Escribir en el puerto serial (USB)
-    print_to_serial(inS1, inS2, inS3, inS4, inS5);
-
     // 3. Controlar el motor 
-    currentValue = compute_send_pwm_from_sensor(inS1, inS2, inS3, inS4, inS5, lastValue);
+    compute_send_pwm_from_sensor(inS1, inS2, inS3, inS4, inS5);
 
     // Mantener esto por un valor de tiempo
     delay(50);
-    lastValue = currentValue;
   }
 }
 
-void print_to_serial(int inS1, int inS2, int inS3, int inS4, int inS5) {
-    Serial.print("Pin N");
-    Serial.print(S1);
-    Serial.print(": ");
-    Serial.println(inS1 == HIGH ? "HIGH" : "LOW");
-    
-    Serial.print("Pin Y");
-    Serial.print(S2);
-    Serial.print(": ");
-    Serial.println(inS2 == HIGH ? "HIGH" : "LOW");
-    
-    Serial.print("Pin Y");
-    Serial.print(S3);
-    Serial.print(": ");
-    Serial.println(inS3 == HIGH ? "HIGH" : "LOW");
-
-    Serial.print("Pin Y");
-    Serial.print(S4);
-    Serial.print(": ");
-    Serial.println(inS4 == HIGH ? "HIGH" : "LOW");
-
-    Serial.print("Pin N");
-    Serial.print(S5);
-    Serial.print(": ");
-    Serial.println(inS5 == HIGH ? "HIGH" : "LOW");
+void print_to_serial(int inS1, int inS2, int inS3, int inS4, int inS5, int pwmI, int pwmD) {
+    Serial.print("I D:\t");
+    Serial.print(pwmI);
+    Serial.print("\t");
+    Serial.print(pwmD);
+    Serial.print("\t");
+    Serial.print("| S1 S2 S3 S4 S5: ");
+    Serial.print(inS1);
+    Serial.print(" ");
+    Serial.print(inS2);
+    Serial.print(" ");
+    Serial.print(inS3);
+    Serial.print(" ");
+    Serial.print(inS4);
+    Serial.print(" ");
+    Serial.println(inS5);  // Ends the line after the last value
 }
 
 void send_pwm(int pwmValueA, int pwmValueB) {
@@ -116,30 +111,41 @@ void send_pwm(int pwmValueA, int pwmValueB) {
   analogWrite(ENB, pwmValueB);
 }
 
-int compute_send_pwm_from_sensor(int inS1, int inS2, int inS3, int inS4, int inS5, int lastValue) {
-  int lastActiveMotor;
-
-  if (inS2 != HIGH) {
-      pwmValueD = 95;
+void compute_send_pwm_from_sensor(int inS1, int inS2, int inS3, int inS4, int inS5) {
+  // Logica de control 
+  
+  if (inS2 == LOW) {
+      pwmValueD = 100;
       pwmValueI = 0;
-      robotDerecha1Rueda(pwmValueD);
-      lastActiveMotor = 0; // Derecha
-      return lastActiveMotor;
+      // 2. Escribir en el puerto serial (USB)
+      print_to_serial(inS1, inS2, inS3, inS4, inS5, pwmValueI, pwmValueD);
+      robotAdelante(pwmValueD, pwmValueI);
+      return;     
   }
-  if (inS4 != HIGH) {
+  if (inS3 == LOW) {
+      pwmValueD = 110;
+      pwmValueI = 110;
+      print_to_serial(inS1, inS2, inS3, inS4, inS5, pwmValueI, pwmValueD);
+      robotAdelante(pwmValueD, pwmValueI);     
+      return; 
+  }
+  if (inS4 == LOW) {
       pwmValueD = 0;
-      pwmValueI = 95;
-      robotIzquierda1Rueda(pwmValueI);
-      lastActiveMotor = 1; // Izquierda
-      return lastActiveMotor;
+      pwmValueI = 100;
+      print_to_serial(inS1, inS2, inS3, inS4, inS5, pwmValueI, pwmValueD);
+      robotAdelante(pwmValueD, pwmValueI);
+      return;
   }
-
-  pwmValueD = 95;
-  pwmValueI = 0;
-  robotDerecha1Rueda(pwmValueD);
-  lastActiveMotor = 0;  
-  return lastActiveMotor;
+  else {
+      delay(200);
+      pwmValueD = 0;
+      pwmValueI = 0;
+      print_to_serial(inS1, inS2, inS3, inS4, inS5, pwmValueI, pwmValueD);
+      robotAdelante(pwmValueD, pwmValueI);
+      return;
+  }
 }
+
 
 void motorDerecha_adelante(int pwmValueA) {
     digitalWrite(IN1, HIGH);
@@ -175,17 +181,7 @@ void robotIzquierda2Ruedas(int pwmD, int pwmI) {
     motorDerecha_adelante(pwmD);
 }
 
-void robotIzquierda1Rueda(int pwm) {
-    motorIzquierda_adelante(0);
-    motorDerecha_adelante(pwm);
-}
-
 void robotDerecha2Ruedas(int pwmD, int pwmI) {
     motorDerecha_atras(pwmD);
     motorIzquierda_adelante(pwmI);
-}
-
-void robotDerecha1Rueda(int pwm) {
-    motorDerecha_adelante(0);
-    motorIzquierda_adelante(pwm);
 }
