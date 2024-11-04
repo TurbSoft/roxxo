@@ -13,6 +13,10 @@ const int ENB = 9;
 int pwmValueD = 0; // modificable (95)
 int pwmValueI = 0;
 
+// Valores de velocidad de los motores
+int lowSpeed  = 95; 
+int highSpeed = 100;
+
 // Sensor Definicion de todos los sensores
 // const int line_pin[5] = {2, 3, 4, 5, 6};
 
@@ -25,6 +29,11 @@ const int S5 = 6; // Naranja
 
 // Inicio startup
 bool startup = false;
+
+// Memoria
+int lastRead=HIGH;
+int currentRead=HIGH;
+int counter=0;
 
 // Declaracion de funciones
 void motorDerecha_adelante(int pwmValueA);
@@ -59,7 +68,7 @@ void setup() {
 }
 
 void loop() {
-
+ 
   // Startup (Reset 5 segundos antes de comenzar)
   if (!startup) {
       delay(5000);
@@ -75,7 +84,8 @@ void loop() {
     int inS5 = digitalRead(S5);
 
     // 3. Controlar el motor 
-    compute_send_pwm_from_sensor(inS1, inS2, inS3, inS4, inS5);
+    currentRead = compute_send_pwm_from_sensor(inS1, inS2, inS3, inS4, inS5, lastRead);
+    lastRead = currentRead;
 
     // Mantener esto por un valor de tiempo
     delay(50);
@@ -111,38 +121,120 @@ void send_pwm(int pwmValueA, int pwmValueB) {
   analogWrite(ENB, pwmValueB);
 }
 
-void compute_send_pwm_from_sensor(int inS1, int inS2, int inS3, int inS4, int inS5) {
+int compute_send_pwm_from_sensor(int inS1, int inS2, int inS3, int inS4, int inS5, int lastRead) {
   // Logica de control 
-  
-  if (inS2 == LOW) {
-      pwmValueD = 100;
+
+  //         S3              
+  // S1  S2  x   S4  S5 
+    
+  // S2 //
+  if (inS1 == HIGH && inS2 == LOW && inS3 == HIGH && inS4==HIGH && inS5==HIGH) {
+      counter = 0;
+      pwmValueD = highSpeed;
+      pwmValueI = lowSpeed;
+      print_to_serial(inS1, inS2, inS3, inS4, inS5, pwmValueI, pwmValueD);
+      robotAdelante(pwmValueD, pwmValueI);
+      return S2;     
+  }
+  // S2 y S3
+  if (inS1 == HIGH && inS2 == LOW && inS3 == LOW && inS4==HIGH && inS5==HIGH) {
+      counter = 0;
+      pwmValueD = lowSpeed;
       pwmValueI = 0;
-      // 2. Escribir en el puerto serial (USB)
       print_to_serial(inS1, inS2, inS3, inS4, inS5, pwmValueI, pwmValueD);
       robotAdelante(pwmValueD, pwmValueI);
-      return;     
+      return S2;     
   }
-  if (inS3 == LOW) {
-      pwmValueD = 110;
-      pwmValueI = 110;
+  // S3
+  if (inS1 == HIGH && inS2 == HIGH && inS3 == LOW && inS4==HIGH && inS5==HIGH) {
+      counter = 0;
+      pwmValueD = lowSpeed;
+      pwmValueI = lowSpeed;
       print_to_serial(inS1, inS2, inS3, inS4, inS5, pwmValueI, pwmValueD);
-      robotAdelante(pwmValueD, pwmValueI);     
-      return; 
+      robotAdelante(pwmValueD, pwmValueI);
+      return S3; 
   }
-  if (inS4 == LOW) {
+  // S4
+  if (inS1 == HIGH && inS2 == HIGH && inS3 == HIGH && inS4==LOW && inS5==HIGH) {
+      counter = 0;
+      pwmValueD = lowSpeed;
+      pwmValueI = highSpeed;
+      print_to_serial(inS1, inS2, inS3, inS4, inS5, pwmValueI, pwmValueD);
+      robotAdelante(pwmValueD, pwmValueI);
+      return S4;
+  } 
+  // S3 y S4
+  if (inS1 == HIGH && inS2 == HIGH && inS3 == LOW && inS4==LOW && inS5==HIGH) {
+      counter = 0;
       pwmValueD = 0;
-      pwmValueI = 100;
+      pwmValueI = lowSpeed;
       print_to_serial(inS1, inS2, inS3, inS4, inS5, pwmValueI, pwmValueD);
       robotAdelante(pwmValueD, pwmValueI);
-      return;
+      return S4;     
   }
-  else {
+  // S1
+  if (inS1 == LOW && inS2 == HIGH && inS3 == HIGH && inS4==HIGH && inS5==HIGH) {
+      counter = 0;
+      pwmValueD = lowSpeed;
+      pwmValueI = 0;
+      print_to_serial(inS1, inS2, inS3, inS4, inS5, pwmValueI, pwmValueD);
+      robotAdelante(pwmValueD, pwmValueI);
+      return S1;     
+  }
+  // S5
+  if (inS1 == HIGH && inS2 == HIGH && inS3 == HIGH && inS4==HIGH && inS5==LOW) {
+      counter = 0;
+      pwmValueD = 0;
+      pwmValueI = lowSpeed;
+      print_to_serial(inS1, inS2, inS3, inS4, inS5, pwmValueI, pwmValueD);
+      robotAdelante(pwmValueD, pwmValueI);
+      return S5;     
+  }
+ 
+
+  if (inS1 == HIGH && inS2 == HIGH && inS3 == HIGH && inS4==HIGH && inS5==HIGH)
+  {
+    // buscar
+    if ((lastRead == S3 || lastRead == S1 || lastRead == S5 ) && counter < 20){
+        while (counter<20){
+            pwmValueD = lowSpeed;
+            pwmValueI = lowSpeed;
+            print_to_serial(inS1, inS2, inS3, inS4, inS5, pwmValueI, pwmValueD);
+            robotAdelante(pwmValueI, pwmValueI);
+            counter++;
+            return lastRead;
+        }
+    }
+    else{
+        int search_dir = random(1); // 0 o 1
+        pwmValueD = lowSpeed;
+        pwmValueI = lowSpeed;
+        if (search_dir == 0){
+            while(inS1 == HIGH && inS2 == HIGH && inS3 == HIGH && inS4==HIGH && inS5==HIGH)
+            {
+                robotDerecha2Ruedas(pwmValueD, pwmValueI);
+                return S3;
+            }
+        }
+        if (search_dir == 1){
+            while(inS1 == HIGH && inS2 == HIGH && inS3 == HIGH && inS4==HIGH && inS5==HIGH)
+            {
+                robotIzquierda2Ruedas(pwmValueD, pwmValueI);
+                return S3;
+            }
+        }
+        
+
+    }
+  }
+  else
+   {
       delay(200);
       pwmValueD = 0;
       pwmValueI = 0;
       print_to_serial(inS1, inS2, inS3, inS4, inS5, pwmValueI, pwmValueD);
       robotAdelante(pwmValueD, pwmValueI);
-      return;
+      return S3;
   }
 }
 
@@ -177,11 +269,11 @@ void robotAdelante(int pwmD, int pwmI) {
 }
 
 void robotIzquierda2Ruedas(int pwmD, int pwmI) {
-    motorIzquierda_atras(pwmI);
-    motorDerecha_adelante(pwmD);
+    motorIzquierda_adelante(pwmI);
+    motorDerecha_atras(pwmD);
 }
 
 void robotDerecha2Ruedas(int pwmD, int pwmI) {
-    motorDerecha_atras(pwmD);
-    motorIzquierda_adelante(pwmI);
+    motorDerecha_adelante(pwmD);
+    motorIzquierda_atras(pwmI);
 }

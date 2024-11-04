@@ -1,17 +1,16 @@
 #include <Arduino.h>
 
-//Motor 1
+// Motor 1
 const int IN1 = 12;
 const int IN2 = 11;
 const int ENA = 10;
-//Motor 2
+// Motor 2
 const int IN3 = 7;
 const int IN4 = 8;
 const int ENB = 9;
 
-const int pwmValueA = 95;
-const int pwmValueB = 95;
-
+int pwmValueA = 90;
+int pwmValueB = 90;
 
 
 void setup() 
@@ -24,6 +23,8 @@ void setup()
   pinMode(ENB, OUTPUT);
   pinMode(IN3, OUTPUT);
   pinMode(IN4, OUTPUT);
+
+  pinMode(LED_BUILTIN, OUTPUT);
 }
 
 void loop() {
@@ -41,4 +42,17 @@ void loop() {
     digitalWrite(IN4, HIGH);
     // Controlamos la velocidad con PWM
     analogWrite(ENB, pwmValueB);
+
+
+    delay(3000);
+
+    pwmValueA = pwmValueA + 1;
+    pwmValueB = pwmValueB + 1;
+
+
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(1000);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(1000);
+
 }
